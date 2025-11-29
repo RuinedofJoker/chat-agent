@@ -1,0 +1,11 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: agent
+
+vector-database:
+  milvus:
+    host: 127.0.0.1
+    port: 19530
+    databaseName: default
