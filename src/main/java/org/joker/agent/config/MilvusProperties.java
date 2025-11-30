@@ -10,7 +10,5 @@ public class MilvusProperties {
     private String host;
     private int port;
     private String databaseName;
-    private String username;
-    private String password;
 
 }

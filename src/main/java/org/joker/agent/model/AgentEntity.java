@@ -21,29 +21,9 @@ public class AgentEntity {
     private LLMModelConfig embeddingModelConfig;
 
     /**
-     * Agent名称
-     */
-    private String name;
-
-    /**
-     * Agent头像URL
-     */
-    private String avatar;
-
-    /**
-     * Agent描述
-     */
-    private String description;
-
-    /**
      * Agent系统提示词
      */
     private String systemPrompt;
-
-    /**
-     * 欢迎消息
-     */
-    private String welcomeMessage;
 
     /**
      * Agent可使用的工具列表

@@ -1,7 +1,9 @@
 package org.joker.agent.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joker.agent.context.ChatContext;
 import org.joker.agent.dto.ChatRequest;
+import org.joker.agent.dto.NewSessionDTO;
 import org.joker.agent.factory.MessageHandlerFactory;
 import org.joker.agent.factory.MessageTransportFactory;
 import org.joker.agent.message.AbstractMessageHandler;
@@ -13,6 +15,12 @@ import org.joker.agent.repository.SessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AiChatService {
@@ -46,6 +54,30 @@ public class AiChatService {
         chatSessionManager.registerSession(chatRequest.getSessionId(), emitter);
 
         return emitter;
+    }
+
+    public SessionEntity createSession(NewSessionDTO session) {
+        String sessionId = "session-" + UUID.randomUUID();
+
+        SessionEntity sessionEntity = new SessionEntity();
+        sessionEntity.setId(sessionId);
+        if (StringUtils.isBlank(session.getTitle())) {
+            sessionEntity.setTitle("新的聊天");
+        }
+        sessionEntity.setCreateTime(new Date());
+
+        AgentEntity agentEntity = new AgentEntity();
+        agentEntity.setId("agent-" + UUID.randomUUID());
+        sessionEntity.setAgentId(agentEntity.getId());
+
+        agentRepository.insert(agentEntity);
+        sessionRepository.insert(sessionEntity);
+
+        return sessionEntity;
+    }
+
+    public List<SessionEntity> queryAllSessions() {
+        return sessionRepository.selectList(sessionEntity -> true).stream().sorted((d1, d2) -> d2.getCreateTime().compareTo(d1.getCreateTime())).toList();
     }
 
     private ChatContext createChatContext(ChatRequest chatRequest) {

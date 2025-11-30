@@ -2,6 +2,8 @@ package org.joker.agent.model;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class SessionEntity {
 
@@ -21,6 +23,11 @@ public class SessionEntity {
     private String agentId;
 
     /**
+     * 欢迎消息
+     */
+    private String welcomeMessage;
+
+    /**
      * 会话描述
      */
     private String description;
@@ -29,5 +36,10 @@ public class SessionEntity {
      * 会话元数据，可存储其他自定义信息
      */
     private String metadata;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
 
 }
