@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @RestController
 @RequestMapping("/ai")
@@ -21,43 +18,13 @@ public class AIChatController {
 
     @Resource
     private AiChatService aiChatService;
-    
-    // 存储sessionId到SseEmitter的映射
-    private static final ConcurrentMap<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     /**
-     * 发起聊天（POST）- 创建SseEmitter连接
+     * 发起聊天
      */
     @PostMapping("/chat")
-    public Map<String, String> chat(@RequestBody @Validated ChatRequest chatRequest) {
-        String sessionId = chatRequest.getSessionId();
-        
-        // 创建SseEmitter
-        SseEmitter emitter = aiChatService.chat(chatRequest);
-        
-        // 存储到映射中
-        emitters.put(sessionId, emitter);
-        
-        // 添加清理回调
-        emitter.onCompletion(() -> emitters.remove(sessionId));
-        emitter.onTimeout(() -> emitters.remove(sessionId));
-        emitter.onError(e -> emitters.remove(sessionId));
-        
-        // 立即返回会话ID
-        return Map.of("sessionId", sessionId);
-    }
-
-    /**
-     * 接收SSE流（GET）- EventSource连接
-     */
-    @GetMapping("/stream/{sessionId}")
-    public SseEmitter stream(@PathVariable String sessionId) {
-        SseEmitter emitter = emitters.get(sessionId);
-        if (emitter != null) {
-            return emitter;
-        }
-        // 如果没有活动的连接，返回一个空的SseEmitter
-        return new SseEmitter();
+    public SseEmitter chat(@RequestBody @Validated ChatRequest chatRequest) {
+        return aiChatService.chat(chatRequest);
     }
 
     /**
