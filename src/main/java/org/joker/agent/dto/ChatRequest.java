@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 public class ChatRequest {
 
@@ -18,5 +21,7 @@ public class ChatRequest {
      */
     @NotBlank(message = "会话id不可为空")
     private String sessionId;
+
+    private List<String> fileUrls = new ArrayList<>();
 
 }
