@@ -33,9 +33,14 @@ export const createSession = async (sessionData) => {
 // 1. POST /chat - 创建连接并发送消息
 // 2. GET /stream/{sessionId} - 通过 EventSource 接收流数据
 export const chat = async (chatRequest) => {
-  // 只需 POST 到 /chat，后端会创建 SseEmitter
-  const response = await api.post('/chat', chatRequest)
-  return response.data
+  // POST 到 /chat 发送消息，后端会创建 SseEmitter
+  await api.post('/chat', chatRequest)
+  // 不返回任何数据
 }
+
+
+
+
+
 
 export default api

@@ -111,4 +111,9 @@ public class ChatSessionManager {
             return true;
         }
     }
+    /** 获取活跃会话Map（仅供Controller使用） */
+    public ConcurrentHashMap<String, SessionInfo> getActiveSessions() {
+        return activeSessions;
+    }
+
 }

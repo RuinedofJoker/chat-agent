@@ -43,7 +43,7 @@ public class AiChatService {
     @Autowired
     private TokenMessageService tokenMessageService;
 
-    public SseEmitter chat(ChatRequest chatRequest) {
+    public void chat(ChatRequest chatRequest) {
         // 获取聊天上下文
         ChatContext chatContext = createChatContext(chatRequest);
 
@@ -63,7 +63,6 @@ public class AiChatService {
         // 注册会话到会话管理器（支持中断功能）
         chatSessionManager.registerSession(chatRequest.getSessionId(), emitter);
 
-        return emitter;
     }
 
     /**

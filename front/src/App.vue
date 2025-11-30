@@ -99,9 +99,14 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import EventSource from 'eventsource-polyfill'
 import { queryAllSessions, queryHistoryMessages, createSession, chat } from './api'
 import NewChatModal from './components/NewChatModal.vue'
+
+// 导入 polyfill，它会自动设置 window.EventSource
+import 'eventsource-polyfill'
+
+// 使用 window.EventSource
+const EventSource = window.EventSource
 
 // 响应式数据
 const sessions = ref([])
@@ -219,9 +224,23 @@ const sendMessage = async () => {
     // 立即添加assistant消息到列表
     currentMessages.value.push(assistantMessage)
 
+    console.log('EventSource连接已建立:', `/api/ai/stream/${sessionId}`)
+
+    eventSource.onopen = () => {
+      console.log('SSE连接已打开')
+    }
+
     eventSource.onmessage = (event) => {
+      console.log('收到SSE数据:', event.data)  // 调试信息
       try {
-        const data = JSON.parse(event.data)
+        // 去掉SSE的"data: "前缀，然后解析JSON
+        const dataStr = event.data.replace(/^data:\s*/, '').trim()
+        // 跳过空数据
+        if (!dataStr || dataStr === '[DONE]') {
+          return
+        }
+        const data = JSON.parse(dataStr)
+        console.log('解析后的数据:', data)  // 调试信息
         if (data.content) {
           assistantMessage.content += data.content
           // 更新最后一条消息（现在它一定存在）
@@ -232,9 +251,11 @@ const sendMessage = async () => {
         // 只有在done为true时才结束loading
         if (data.done) {
           isTyping.value = false
+          console.log('消息接收完成')
         }
       } catch (error) {
         console.error('解析消息失败:', error)
+        console.error('原始数据:', event.data)
       }
     }
 
