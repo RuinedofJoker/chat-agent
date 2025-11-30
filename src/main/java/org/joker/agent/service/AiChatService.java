@@ -76,7 +76,7 @@ public class AiChatService {
 
         // 获取活跃消息(包括摘要)
         List<MessageEntity> messageEntities = messageRepository.selectList(messageEntity -> StringUtils.equals(sessionId, messageEntity.getSessionId()) && Boolean.TRUE.equals(messageEntity.getIsActive()));
-        messageEntities.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+        messageEntities.sort(Comparator.comparing(MessageEntity::getCreatedAt));
 
         // 应用Token溢出策略, 上下文历史消息以token策略返回的为准
         messageEntities = applyTokenOverflowStrategy(environment, messageEntities);
@@ -173,6 +173,10 @@ public class AiChatService {
         AgentEntity agentEntity = new AgentEntity();
         agentEntity.setId("agent-" + UUID.randomUUID());
         sessionEntity.setAgentId(agentEntity.getId());
+        agentEntity.setSystemPrompt(session.getSystemPrompt());
+        agentEntity.setMultiModal(session.getMultiModal());
+        agentEntity.setAgentModelConfig(session.getAgentModelConfig());
+        agentEntity.setEmbeddingModelConfig(session.getEmbeddingModelConfig());
 
         agentRepository.insert(agentEntity);
         sessionRepository.insert(sessionEntity);
@@ -186,7 +190,7 @@ public class AiChatService {
 
     public List<MessageEntity> queryHistoryMessages(String sessionId) {
         List<MessageEntity> messageEntities = messageRepository.selectList(messageEntity -> StringUtils.equals(sessionId, messageEntity.getSessionId()) && Boolean.TRUE.equals(messageEntity.getIsActive()));
-        messageEntities.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+        messageEntities.sort(Comparator.comparing(MessageEntity::getCreatedAt));
         return messageEntities;
     }
 

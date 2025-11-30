@@ -1,6 +1,8 @@
 package org.joker.agent.repository;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,17 +21,18 @@ public abstract class BaseRepository<Key, Entity> {
 
     protected void setDefaultKey(Entity entity) {
         try {
-            Method setKeyMethod = this.getClass()
-                    .getDeclaredMethod("setKey", Object.class, Object.class);
+            Type superclass = getClass().getGenericSuperclass();
+            if (superclass instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) superclass;
+                Type keyType = pt.getActualTypeArguments()[0];
 
-            Class<?> keyType = setKeyMethod.getParameterTypes()[0];
-
-            // 判断 Key 是否为 String 类型
-            if (String.class.equals(keyType)) {
-                String newId = java.util.UUID.randomUUID().toString();
-                @SuppressWarnings("unchecked")
-                Key key = (Key) newId;
-                setKey(key, entity);
+                // 判断 Key 是否为 String 类型
+                if (String.class.equals(keyType)) {
+                    String newId = java.util.UUID.randomUUID().toString();
+                    @SuppressWarnings("unchecked")
+                    Key key = (Key) newId;
+                    setKey(key, entity);
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to set default key", e);

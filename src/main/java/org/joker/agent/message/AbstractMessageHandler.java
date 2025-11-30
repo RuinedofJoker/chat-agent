@@ -215,6 +215,8 @@ public class AbstractMessageHandler {
             // 不重置 created_at 字段
             messageService.saveMessage(Collections.singletonList(summary));
         }
+        // 保存用户消息
+        messageService.saveMessage(Collections.singletonList(userEntity));
     }
 
     /**
@@ -424,8 +426,10 @@ public class AbstractMessageHandler {
             // 注意不要重复发送摘要消息
             if (messageEntity.isUserMessage()) {
                 List<String> fileUrls = messageEntity.getFileUrls();
-                for (String fileUrl : fileUrls) {
-                    memory.add(UserMessage.from(ImageContent.from(fileUrl)));
+                if (fileUrls != null) {
+                    for (String fileUrl : fileUrls) {
+                        memory.add(UserMessage.from(ImageContent.from(fileUrl)));
+                    }
                 }
                 if (!StringUtils.isEmpty(messageEntity.getContent())) {
                     memory.add(new UserMessage(messageEntity.getContent()));
