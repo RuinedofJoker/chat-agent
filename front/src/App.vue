@@ -92,7 +92,7 @@
     <NewChatModal
       v-if="showNewChatModal"
       @close="showNewChatModal = false"
-      @created="handleSessionCreated"
+      @create="handleSessionCreated"
     />
   </div>
 </template>
@@ -142,25 +142,37 @@ const selectSession = (sessionId) => {
 }
 
 // 创建新会话
-const handleSessionCreated = async (newSession) => {
-  showNewChatModal.value = false
-  await loadSessions()
-  currentSessionId.value = newSession.id
-  currentMessages.value = []
+const handleSessionCreated = async (sessionData) => {
+  try {
+    showNewChatModal.value = false
 
-  // 显示欢迎消息
-  if (newSession.welcomeMessage) {
-    currentMessages.value.push({
-      id: Date.now(),
-      role: 'assistant',
-      content: newSession.welcomeMessage,
-      createTime: new Date().toISOString()
-    })
+    // 调用后端API创建会话
+    const newSession = await createSession(sessionData)
+
+    // 重新加载会话列表
+    await loadSessions()
+
+    // 设置当前会话
+    currentSessionId.value = newSession.id
+    currentMessages.value = []
+
+    // 显示欢迎消息
+    if (newSession.welcomeMessage) {
+      currentMessages.value.push({
+        id: Date.now(),
+        role: 'assistant',
+        content: newSession.welcomeMessage,
+        createTime: new Date().toISOString()
+      })
+    }
+
+    await nextTick()
+    scrollToBottom()
+    messageInput.value?.focus()
+  } catch (error) {
+    console.error('创建会话失败:', error)
+    alert('创建会话失败，请重试')
   }
-
-  await nextTick()
-  scrollToBottom()
-  messageInput.value?.focus()
 }
 
 // 发送消息
@@ -204,20 +216,22 @@ const sendMessage = async () => {
       createTime: new Date().toISOString()
     }
 
+    // 立即添加assistant消息到列表
+    currentMessages.value.push(assistantMessage)
+
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
         if (data.content) {
           assistantMessage.content += data.content
-          isTyping.value = false
-          // 更新最后一条消息
+          // 更新最后一条消息（现在它一定存在）
           const lastIndex = currentMessages.value.length - 1
-          if (lastIndex >= 0 && currentMessages.value[lastIndex].id === assistantMessage.id) {
-            currentMessages.value[lastIndex] = { ...assistantMessage }
-          } else {
-            currentMessages.value.push(assistantMessage)
-          }
+          currentMessages.value[lastIndex] = { ...assistantMessage }
           scrollToBottom()
+        }
+        // 只有在done为true时才结束loading
+        if (data.done) {
+          isTyping.value = false
         }
       } catch (error) {
         console.error('解析消息失败:', error)
